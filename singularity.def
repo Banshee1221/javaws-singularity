@@ -1,0 +1,32 @@
+Bootstrap: library
+From: ubuntu:16.04
+
+%environment
+    export LC_ALL=C
+    export PATH=$PATH:/opt/icedtea-web/bin/
+
+%post
+    apt-get update && apt-get install -y wget build-essential openjdk-8-jdk libgtk2.0-dev python-gtk2-dev unzip zip xauth
+    mkdir -p /opt/icedtea-web/src
+    wget -P /tmp http://icedtea.classpath.org/download/source/icedtea-web-1.6.2.tar.gz
+    tar -zxf /tmp/icedtea-web-1.6.2.tar.gz -C /opt/icedtea-web/src
+    cd /opt/icedtea-web/src/icedtea-web-1.6.2/
+    ./configure --prefix=/opt/icedtea-web/ --disable-plugin --without-firefox --with-jdk-home="/usr/lib/jvm/java-8-openjdk-amd64/"
+    make -j`cat /proc/cpuinfo | grep processor | wc -l`
+    make install
+    chmod +x /opt/icedtea-web/bin/javaws
+    rm -rf /opt/icedtea-web/src /tmp/icedtea*
+    apt-get purge -y wget build-essential unzip zip
+    apt-get -y autoremove
+    apt-get -y autoclean 
+   
+%runscript
+    exec /opt/icedtea-web/bin/javaws "$@"
+
+%labels
+    Author Eugene de Beste
+    Version v1.0.0
+
+%help
+    This is a container for iceadtea-web 1.6.2. It enables usage of legacy Java Webstart consoles for
+    older servers and other webstart apps.
